@@ -608,7 +608,7 @@ monthly_report = audit_manager.generate_compliance_report(
 
 @inproceedings{llm_manufacturing2024,
   title={LLM-Powered Autonomous Quality Systems in Smart Factories},
-  author={Your Team},
+  author={Daniel Schmidt},
   booktitle={IEEE International Conference on Automation Science and Engineering},
   year={2024}
 }
