@@ -1,0 +1,83 @@
+# Prometheus configuration for Agentic Scent Analytics monitoring
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Rule files
+rule_files:
+  - "alerts.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Agentic Scent Analytics application
+  - job_name: 'agentic-scent'
+    static_configs:
+      - targets: ['agentic-scent:8090']
+    scrape_interval: 10s
+    metrics_path: /metrics
+    scrape_timeout: 5s
+
+  # Redis metrics (if redis_exporter is used)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # PostgreSQL metrics (if postgres_exporter is used)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # Node exporter for system metrics (if deployed)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Recording rules for aggregation
+recording_rules:
+  - name: agentic_scent_rules
+    rules:
+      # Analysis throughput per minute
+      - record: agentic_scent:analyses_per_minute
+        expr: rate(agentic_scent_analyses_total[1m]) * 60
+
+      # Error rate percentage
+      - record: agentic_scent:error_rate_percent
+        expr: |
+          (
+            rate(agentic_scent_analyses_total{result="error"}[5m]) /
+            rate(agentic_scent_analyses_total[5m])
+          ) * 100
+
+      # Average analysis duration
+      - record: agentic_scent:avg_analysis_duration
+        expr: rate(agentic_scent_analysis_duration_seconds_sum[5m]) / rate(agentic_scent_analysis_duration_seconds_count[5m])
+
+      # Cache hit rate percentage
+      - record: agentic_scent:cache_hit_rate_percent
+        expr: |
+          (
+            rate(agentic_scent_cache_hits_total[5m]) /
+            (rate(agentic_scent_cache_hits_total[5m]) + rate(agentic_scent_cache_misses_total[5m]))
+          ) * 100
+
+      # System resource utilization
+      - record: agentic_scent:system_cpu_utilization
+        expr: agentic_scent_system_cpu_percent
+
+      - record: agentic_scent:system_memory_utilization
+        expr: agentic_scent_system_memory_percent

@@ -1,0 +1,169 @@
+version: '3.8'
+
+services:
+  # Main application service
+  agentic-scent:
+    build:
+      context: .
+      target: production
+    image: agentic-scent:latest
+    container_name: agentic-scent-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+      - "8090:8090"  # Prometheus metrics
+    environment:
+      - AGENTIC_SCENT_ENVIRONMENT=production
+      - AGENTIC_SCENT_SITE_ID=docker_deployment
+      - AGENTIC_SCENT_LOG_LEVEL=INFO
+      - AGENTIC_SCENT_REDIS_URL=redis://redis:6379
+      - AGENTIC_SCENT_POSTGRES_URL=postgresql://agentic:agentic_password@postgres:5432/agentic_scent
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - agentic-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import agentic_scent; print('OK')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Redis for caching and session storage
+  redis:
+    image: redis:7-alpine
+    container_name: agentic-scent-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - agentic-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # PostgreSQL for audit trail and persistent data
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentic-scent-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=agentic_scent
+      - POSTGRES_USER=agentic
+      - POSTGRES_PASSWORD=agentic_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - agentic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic -d agentic_scent"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: agentic-scent-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=90d'
+      - '--web.enable-lifecycle'
+    networks:
+      - agentic-network
+    depends_on:
+      - agentic-scent
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: agentic-scent-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - agentic-network
+    depends_on:
+      - prometheus
+
+  # NGINX reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: agentic-scent-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/ssl:/etc/nginx/ssl
+    networks:
+      - agentic-network
+    depends_on:
+      - agentic-scent
+      - grafana
+
+  # Development service (optional)
+  agentic-scent-dev:
+    build:
+      context: .
+      target: development
+    image: agentic-scent:dev 
+    container_name: agentic-scent-dev
+    volumes:
+      - .:/app
+      - dev_cache:/app/.cache
+    ports:
+      - "8001:8000"
+      - "8091:8090"
+    environment:
+      - AGENTIC_SCENT_ENVIRONMENT=development
+      - AGENTIC_SCENT_LOG_LEVEL=DEBUG
+      - AGENTIC_SCENT_REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+      - postgres
+    networks:
+      - agentic-network
+    profiles:
+      - dev
+    command: ["python", "-m", "agentic_scent.cli", "demo", "--duration", "300"]
+
+networks:
+  agentic-network:
+    driver: bridge
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+  dev_cache:
