@@ -1,19 +1,39 @@
 #!/usr/bin/env python3
+"""
+Setup script for Sentiment Analyzer Pro
+"""
 
 from setuptools import setup, find_packages
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
+# Read requirements
+def read_requirements():
+    try:
+        with open("requirements.txt", "r", encoding="utf-8") as fh:
+            return [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+    except FileNotFoundError:
+        return [
+            "fastapi>=0.104.1",
+            "uvicorn[standard]>=0.24.0",
+            "pydantic>=2.5.0",
+            "transformers>=4.35.2",
+            "torch>=2.1.1",
+            "vaderSentiment>=3.3.2",
+            "textblob>=0.17.1",
+            "click>=8.0.0",
+        ]
+
 setup(
-    name="quantum-task-planner",
+    name="sentiment-analyzer-pro",
     version="1.0.0",
     author="Terragon Labs",
-    author_email="contact@terragonlabs.com",
-    description="Quantum-inspired task planning and optimization system",
+    author_email="info@terragonlabs.com",
+    description="Advanced multi-model sentiment analysis platform with real-time processing and enterprise-grade security",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/terragonlabs/quantum-task-planner",
+    url="https://github.com/terragonlabs/sentiment-analyzer-pro",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -27,57 +47,64 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
+        "Topic :: Text Processing :: Linguistic",
         "Topic :: Software Development :: Libraries :: Python Modules",
-        "Topic :: System :: Distributed Computing",
     ],
     python_requires=">=3.9",
-    install_requires=[
-        "numpy>=1.21.0",
-        "click>=8.0.0",
-        "asyncio>=3.4.3",
-        "typing-extensions>=4.0.0",
-        "dataclasses>=0.8;python_version<'3.7'",
-    ],
+    install_requires=read_requirements(),
     extras_require={
         "dev": [
-            "pytest>=7.0.0",
-            "pytest-asyncio>=0.20.0",
-            "black>=22.0.0",
-            "flake8>=5.0.0",
-            "mypy>=0.990",
-            "coverage>=6.0.0",
-            "pytest-cov>=4.0.0",
+            "pytest>=7.4.3",
+            "pytest-asyncio>=0.21.1",
+            "pytest-cov>=4.1.0",
+            "pytest-mock>=3.12.0",
+            "black>=23.11.0",
+            "flake8>=6.1.0",
+            "mypy>=1.7.1",
+            "isort>=5.12.0",
         ],
-        "performance": [
-            "psutil>=5.8.0",
-            "scipy>=1.7.0",
+        "industrial": [
+            "psycopg2-binary>=2.9.9",
+            "redis>=5.0.1",
+            "aioredis>=2.0.1",
+            "asyncpg>=0.29.0",
         ],
-        "visualization": [
-            "matplotlib>=3.5.0",
-            "graphviz>=0.20.0",
+        "llm": [
+            "openai>=1.3.6",
+            "anthropic>=0.7.7",
         ],
         "all": [
-            "pytest>=7.0.0",
-            "pytest-asyncio>=0.20.0",
-            "black>=22.0.0",
-            "flake8>=5.0.0",
-            "mypy>=0.990",
-            "coverage>=6.0.0",
-            "pytest-cov>=4.0.0",
-            "psutil>=5.8.0",
-            "scipy>=1.7.0",
-            "matplotlib>=3.5.0",
-            "graphviz>=0.20.0",
-        ],
+            "pytest>=7.4.3",
+            "pytest-asyncio>=0.21.1",
+            "pytest-cov>=4.1.0",
+            "black>=23.11.0",
+            "psycopg2-binary>=2.9.9",
+            "redis>=5.0.1",
+            "openai>=1.3.6",
+            "anthropic>=0.7.7",
+        ]
     },
     entry_points={
         "console_scripts": [
-            "quantum-planner=quantum_planner.cli:main",
+            "sentiment-analyzer=sentiment_analyzer.cli:cli",
         ],
     },
+    include_package_data=True,
+    keywords=[
+        "sentiment-analysis",
+        "nlp",
+        "machine-learning", 
+        "artificial-intelligence",
+        "text-analysis",
+        "emotion-detection",
+        "transformers",
+        "fastapi",
+        "production-ready",
+        "enterprise",
+    ],
     project_urls={
-        "Bug Reports": "https://github.com/terragonlabs/quantum-task-planner/issues",
-        "Source": "https://github.com/terragonlabs/quantum-task-planner",
-        "Documentation": "https://quantum-task-planner.readthedocs.io/",
+        "Bug Reports": "https://github.com/terragonlabs/sentiment-analyzer-pro/issues",
+        "Source": "https://github.com/terragonlabs/sentiment-analyzer-pro",
+        "Documentation": "https://sentiment-analyzer-pro.readthedocs.io/",
     },
 )
