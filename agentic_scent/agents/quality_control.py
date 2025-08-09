@@ -203,33 +203,38 @@ class QualityControlAgent(BaseAgent):
                                          contamination: Dict, process: Dict, 
                                          trend: Dict) -> str:
         """Perform root cause analysis using LLM."""
-        prompt = f"""
-        Analyze the following quality control data and identify the most likely root cause:
         
-        Sensor Reading Summary:
-        - Mean value: {np.mean(reading.values):.2f}
-        - Standard deviation: {np.std(reading.values):.2f}
-        - Number of channels: {len(reading.values)}
+        # Prepare sensor data context for specialized analysis
+        sensor_data = {
+            "sensor_id": reading.sensor_id,
+            "timestamp": reading.timestamp.isoformat(),
+            "values": reading.values,
+            "statistics": {
+                "mean": float(np.mean(reading.values)),
+                "std": float(np.std(reading.values)),
+                "min": float(np.min(reading.values)),
+                "max": float(np.max(reading.values)),
+                "channels": len(reading.values)
+            },
+            "contamination_analysis": contamination,
+            "process_analysis": process,
+            "trend_analysis": trend
+        }
         
-        Contamination Analysis:
-        - Contamination detected: {contamination['anomaly']}
-        - Suspected contaminant: {contamination.get('suspected_contaminant', 'None')}
-        - Similarity score: {contamination['similarity_score']:.3f}
+        context = "Root cause analysis for quality deviation detection"
         
-        Process Analysis:
-        - Process anomaly: {process['anomaly']}
-        - Mean deviation: {process['mean_deviation']:.3f}
-        - Excessive variation: {process['std_excessive']}
-        
-        Trend Analysis:
-        - Trend anomaly: {trend['anomaly']}
-        - Trend direction: {trend['trend']}
-        
-        Based on this data, what is the most likely root cause of the quality issue?
-        Consider: equipment malfunction, raw material issues, process drift, contamination, or operator error.
-        """
-        
-        return await self._call_llm(prompt)
+        try:
+            response = await self.llm_client.analyze_sensor_data(sensor_data, context)
+            return response.content
+        except Exception as e:
+            self.logger.error(f"Root cause analysis failed: {e}")
+            # Fallback analysis
+            if contamination['anomaly']:
+                return f"Contamination detected: {contamination.get('suspected_contaminant', 'unknown source')}"
+            elif process['anomaly']:
+                return f"Process deviation: excessive variation (std={process['mean_deviation']:.3f})"
+            else:
+                return "Sensor drift or calibration issue"
     
     async def _generate_corrective_action(self, root_cause: str) -> str:
         """Generate corrective action recommendations."""

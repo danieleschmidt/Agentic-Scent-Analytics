@@ -1,0 +1,62 @@
+{
+  "test_summary": {
+    "total_tests": 4,
+    "passed_tests": 3,
+    "failed_tests": 1,
+    "pass_rate": 0.75,
+    "total_duration": 4.350630521774292,
+    "timestamp": "2025-08-09T06:36:52.852726"
+  },
+  "test_results": {
+    "integration_e2e": {
+      "success": false,
+      "duration": 0.0023703575134277344,
+      "timestamp": "2025-08-09T06:36:48.505789",
+      "details": {
+        "error": "'HybridAgentOrchestrator' object has no attribute 'start'"
+      }
+    },
+    "performance_benchmarks": {
+      "success": true,
+      "duration": 1.7373046875,
+      "timestamp": "2025-08-09T06:36:50.243145",
+      "details": {
+        "task_throughput": 70.7344755487933,
+        "cache_write_rate": 53181.98993241787,
+        "cache_read_rate": 253508.8546388637,
+        "cache_hit_rate": 1.0,
+        "llm_rate": 9.933353779622944
+      }
+    },
+    "error_recovery": {
+      "success": true,
+      "duration": 2.604673147201538,
+      "timestamp": "2025-08-09T06:36:52.848190",
+      "details": {
+        "task_recovery_rate": 0.6,
+        "system_health": "healthy"
+      }
+    },
+    "security_compliance": {
+      "success": true,
+      "duration": 0.0044667720794677734,
+      "timestamp": "2025-08-09T06:36:52.852684",
+      "details": {
+        "log_files_created": 9,
+        "safe_validations": 2
+      }
+    }
+  },
+  "performance_summary": {
+    "task_throughput": 70.7344755487933,
+    "cache_write_rate": 53181.98993241787,
+    "cache_read_rate": 253508.8546388637,
+    "cache_hit_rate": 1.0,
+    "llm_rate": 9.933353779622944
+  },
+  "production_readiness": {
+    "ready": false,
+    "quality_score": 75.0,
+    "recommendation": "REQUIRES FIXES BEFORE PRODUCTION"
+  }
+}
