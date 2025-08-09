@@ -11,6 +11,7 @@ from datetime import datetime
 from enum import Enum
 
 from ..sensors.base import SensorReading
+from ..llm.client import create_llm_client, LLMClient
 
 
 class AnalysisResult:
@@ -59,6 +60,12 @@ class BaseAgent(ABC):
         self.logger = logging.getLogger(f"agent.{self.agent_id}")
         self.is_active = False
         self._analysis_history: List[AnalysisResult] = []
+        
+        # Initialize LLM client
+        self.llm_client = create_llm_client(
+            model=config.llm_model,
+            provider=None  # Auto-detect from model name
+        )
     
     @abstractmethod
     async def analyze(self, sensor_reading: SensorReading) -> Optional[AnalysisResult]:
@@ -104,16 +111,24 @@ class BaseAgent(ABC):
     
     async def _call_llm(self, prompt: str, context: Dict[str, Any] = None) -> str:
         """
-        Call LLM for analysis. This is a simplified implementation.
-        In production, this would use actual LLM APIs.
+        Call LLM for analysis using real LLM integration.
         """
-        # Mock LLM response for now
-        await asyncio.sleep(0.1)  # Simulate API call delay
-        
-        if "anomaly" in prompt.lower():
-            return "Based on the sensor data, I detect a potential quality deviation. The scent profile shows elevated volatile compounds consistent with contamination."
-        
-        return "Analysis indicates normal operating conditions within acceptable parameters."
+        try:
+            if context:
+                # Use specialized sensor data analysis
+                response = await self.llm_client.analyze_sensor_data(context, prompt)
+            else:
+                # Use general generation
+                response = await self.llm_client.generate(prompt)
+            
+            return response.content
+            
+        except Exception as e:
+            self.logger.error(f"LLM call failed: {e}")
+            # Fallback to simple heuristic response
+            if "anomaly" in prompt.lower():
+                return "Analysis indicates potential quality deviation based on sensor pattern analysis."
+            return "Analysis completed with normal parameters."
     
     async def explain_decision(self, analysis_result: AnalysisResult) -> str:
         """

@@ -1,0 +1,236 @@
+version: '3.8'
+
+services:
+  # Main Application
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: production
+    image: agentic-scent-analytics:${APP_VERSION:-latest}
+    container_name: agentic-scent-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://agentic_user:${DB_PASSWORD}@postgres:5432/agentic_scent_prod
+      - REDIS_URL=redis://redis:6379/0
+    env_file:
+      - production.env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - app_logs:/app/logs
+      - app_data:/app/data
+    networks:
+      - agentic_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 4G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: agentic-scent-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: agentic_scent_prod
+      POSTGRES_USER: agentic_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../docker/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - agentic_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentic_user -d agentic_scent_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: agentic-scent-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - agentic_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # NGINX Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: agentic-scent-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+      - ssl_certs:/etc/nginx/ssl
+    depends_on:
+      - app
+    networks:
+      - agentic_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: agentic-scent-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../docker/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    networks:
+      - agentic_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 2G
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: agentic-scent-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../docker/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+    depends_on:
+      - prometheus
+    networks:
+      - agentic_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Log Aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: agentic-scent-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - agentic_network
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 1G
+
+  # Backup Service
+  backup:
+    image: postgres:15-alpine
+    container_name: agentic-scent-backup
+    restart: "no"
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - backup_data:/backups
+      - ../scripts/backup.sh:/backup.sh:ro
+    command: ["sh", "/backup.sh"]
+    depends_on:
+      - postgres
+    networks:
+      - agentic_network
+    profiles:
+      - backup
+
+# Named Volumes
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+  app_logs:
+    driver: local
+  app_data:
+    driver: local
+  nginx_logs:
+    driver: local
+  ssl_certs:
+    driver: local
+  backup_data:
+    driver: local
+
+# Networks
+networks:
+  agentic_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

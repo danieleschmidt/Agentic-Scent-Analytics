@@ -1,0 +1,409 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agentic-scent-prod
+  labels:
+    name: agentic-scent-prod
+    environment: production
+
+---
+# Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agentic-scent-config
+  namespace: agentic-scent-prod
+data:
+  APP_ENV: "production"
+  APP_NAME: "agentic-scent-analytics"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "structured"
+  PROMETHEUS_ENABLED: "true"
+  TASK_POOL_MIN_WORKERS: "4"
+  TASK_POOL_MAX_WORKERS: "16"
+  CACHE_MEMORY_SIZE: "2000"
+  CACHE_TTL_SECONDS: "600"
+  DEFAULT_SAMPLING_RATE: "10.0"
+  MAX_SENSOR_CHANNELS: "128"
+  ALERT_THRESHOLD: "0.85"
+
+---
+# Secrets
+apiVersion: v1
+kind: Secret
+metadata:
+  name: agentic-scent-secrets
+  namespace: agentic-scent-prod
+type: Opaque
+data:
+  # Base64 encoded secrets - replace with actual values
+  DB_PASSWORD: cGFzc3dvcmQxMjM=  # password123
+  OPENAI_API_KEY: eW91cl9vcGVuYWlfa2V5X2hlcmU=  # your_openai_key_here
+  ANTHROPIC_API_KEY: eW91cl9hbnRocm9waWNfa2V5X2hlcmU=  # your_anthropic_key_here
+  SECRET_KEY: c3VwZXJfc2VjcmV0X2tleV9mb3JfcHJvZHVjdGlvbg==  # super_secret_key_for_production
+
+---
+# PostgreSQL Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: agentic-scent-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15-alpine
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "agentic_scent_prod"
+        - name: POSTGRES_USER
+          value: "agentic_user"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: agentic-scent-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - agentic_user
+            - -d
+            - agentic_scent_prod
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
+---
+# PostgreSQL Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: agentic-scent-prod
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+# Redis Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: agentic-scent-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        command:
+        - redis-server
+        - --appendonly
+        - "yes"
+        - --maxmemory
+        - "1gb"
+        - --maxmemory-policy
+        - "allkeys-lru"
+        volumeMounts:
+        - name: redis-storage
+          mountPath: /data
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: redis-storage
+        persistentVolumeClaim:
+          claimName: redis-pvc
+
+---
+# Redis Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: agentic-scent-prod
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+
+---
+# Main Application Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentic-scent-app
+  namespace: agentic-scent-prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: agentic-scent-app
+  template:
+    metadata:
+      labels:
+        app: agentic-scent-app
+    spec:
+      containers:
+      - name: app
+        image: agentic-scent-analytics:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          value: "postgresql://agentic_user:$(DB_PASSWORD)@postgres:5432/agentic_scent_prod"
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: agentic-scent-secrets
+              key: DB_PASSWORD
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: agentic-scent-secrets
+              key: OPENAI_API_KEY
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: agentic-scent-secrets
+              key: ANTHROPIC_API_KEY
+        envFrom:
+        - configMapRef:
+            name: agentic-scent-config
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: app-logs
+          mountPath: /app/logs
+      volumes:
+      - name: app-logs
+        persistentVolumeClaim:
+          claimName: app-logs-pvc
+
+---
+# Application Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: agentic-scent-service
+  namespace: agentic-scent-prod
+spec:
+  selector:
+    app: agentic-scent-app
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP
+
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agentic-scent-ingress
+  namespace: agentic-scent-prod
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  tls:
+  - hosts:
+    - api.yourdomain.com
+    secretName: agentic-scent-tls
+  rules:
+  - host: api.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: agentic-scent-service
+            port:
+              number: 80
+
+---
+# Persistent Volumes
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: agentic-scent-prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: agentic-scent-prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: app-logs-pvc
+  namespace: agentic-scent-prod
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+# Horizontal Pod Autoscaler
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: agentic-scent-hpa
+  namespace: agentic-scent-prod
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: agentic-scent-app
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+# Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: agentic-scent-network-policy
+  namespace: agentic-scent-prod
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+  - from:
+    - podSelector:
+        matchLabels:
+          app: agentic-scent-app
+    ports:
+    - protocol: TCP
+      port: 5432
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
