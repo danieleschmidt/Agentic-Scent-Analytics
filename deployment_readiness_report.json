@@ -1,0 +1,112 @@
+{
+  "timestamp": "2025-08-10T18:29:18.343224",
+  "deployment_readiness": {
+    "overall_status": "NEEDS_WORK",
+    "readiness_score": 53.33333333333333,
+    "critical_issues": [
+      "Missing dependencies: ['scikit-learn', 'typing-extensions', 'prometheus-client']",
+      "Many tests failed (2/3 passed)"
+    ],
+    "warnings": [
+      "System may not meet minimum requirements"
+    ],
+    "recommendations": [
+      "Install missing dependencies with: pip install -r requirements.txt",
+      "Fix failing tests before production deployment",
+      "Ensure adequate system resources for production workload"
+    ]
+  },
+  "checks": {
+    "dependencies": {
+      "success": false,
+      "installed": {
+        "numpy": "2.3.2",
+        "pandas": "2.3.1",
+        "click": "8.2.1",
+        "asyncio": "unknown",
+        "psutil": "7.0.0"
+      },
+      "missing": [
+        "scikit-learn",
+        "typing-extensions",
+        "prometheus-client"
+      ]
+    },
+    "file_structure": {
+      "success": true,
+      "present": [
+        "setup.py",
+        "requirements.txt",
+        "README.md",
+        "CLAUDE.md",
+        "agentic_scent/__init__.py",
+        "agentic_scent/core/factory.py",
+        "agentic_scent/agents/quality_control.py",
+        "agentic_scent/sensors/base.py",
+        "agentic_scent/analytics/fingerprinting.py",
+        "deploy.sh",
+        "docker-compose.yml",
+        "k8s/deployment.yaml"
+      ],
+      "missing": []
+    },
+    "imports": {
+      "success": true,
+      "successful": [
+        "agentic_scent",
+        "agentic_scent.core.factory",
+        "agentic_scent.agents.quality_control",
+        "agentic_scent.sensors.base",
+        "agentic_scent.analytics.fingerprinting",
+        "agentic_scent.core.security",
+        "agentic_scent.core.validation",
+        "agentic_scent.core.caching",
+        "agentic_scent.core.metrics"
+      ],
+      "failed": []
+    },
+    "tests": {
+      "basic_tests": {
+        "passed": true,
+        "output": "\ud83e\uddea Running Agentic Scent Analytics Basic Tests\n==================================================\n\n\ud83d\udccb Import Tests\n------------------------------\nTesting imports...\n\u2705 Main package import successful\n\u2705 Factory import successful\n\u2705 QualityControlAgent import successful\n\u2705 Sensor base classes import successful\n\u2705 Analytics import successful\n\u2705 Import Tests PASSED\n\n\ud83d\udccb Basic Functionality\n------------------------------\n\nTesting basic functionality...\n\u2705 Factory creation successful\n\u2705 Agent creation successful\n\u2705 Sensor reading creation successful\n\u2705 Fingerprinter creation successful\n\u2705 Basic Functionality PASSED\n\n\ud83d\udccb Configuration\n------------------------------\n\nTesting configuration...\n\u2705 Configuration creation successful\n\u2705 Configuration attributes correct\n\u2705 Configuration PASSED\n\n\ud83d\udccb Async Functionality\n------------------------------\n\nTesting async functionality...\n\u2705 Agent start successful\n\u2705 Analysis successful\n   Analysis confidence: 0.593\n   Anomaly detected: True\n\u2705 Agent stop successful\n\u2705 Async Functionality PASSED\n\n==================================================\n\ud83d\udcca Test Results: 4/4 tests passed\n\ud83c\udf89 All tests passed! System is ready for deployment.\n"
+      },
+      "scaling_tests": {
+        "passed": true,
+        "output": "\u2705 All scaling modules imported successfully\n\ud83d\ude80 Running Agentic Scent Analytics Scaling Tests\n============================================================\n\n\ud83d\udccb Testing Caching System\n----------------------------------------\n  \u2705 Cached data with key: test_analysis:batch_id:BATCH_001:sensor_id:e_nose_01\n  \u2705 Cache retrieval successful\n  \u2705 Cache stats - Memory: 1.00 hit rate\n                   Redis: 0.00 hit rate\n  \u2705 Cache miss handled correctly\n\u2705 Caching system test passed\n\n\ud83d\udccb Testing Task Pool System\n----------------------------------------\n  \u2705 Submitted 5 tasks\n  \u2705 test_task_0: 0.201s execution time\n  \u2705 test_task_1: 0.201s execution time\n  \u2705 test_task_2: 0.201s execution time\n  \u2705 test_task_3: 0.201s execution time\n  \u2705 test_task_4: 0.201s execution time\n  \u2705 Pool status: 3 workers, 5 completed\n  \u2705 Task pool stopped\n\u2705 Task pool test passed (100.0% success rate)\n\n\ud83d\udccb Testing Metrics System\n----------------------------------------\n  \u2705 Recorded various metrics\n  \u2705 Profiling: 0.1004s average\n  \u2705 Metrics collected: 4 counters, 1 histograms\n  \u2705 Prometheus metrics exported\n    agentic_scent_sensor_readings_total{sensor_id=\"e_nose_01\",sensor_type=\"MOS\"} 1.0\n\u2705 Metrics system test passed\n\n\ud83d\udccb Testing Optimized Factory System\n----------------------------------------\n  \u2705 Initial metrics: 1 agents\n  \u2705 Performance systems active: Task Pool=True, Cache=True, Metrics=True\n  \u2705 JSON metrics export successful\n  \u2705 Prometheus metrics export successful\n  \u2705 Cached analysis: first=0.1011s, second=0.1007s\n  \u2705 Factory stopped gracefully\n\u2705 Optimized factory test passed\n\n\ud83d\udccb Testing Load Simulation\n----------------------------------------\n  \u2705 Submitted 20 tasks in 0.000s\n  \u2705 Load test results:\n    Completed: 20/20 (100.0%)\n    Total time: 0.101s\n    Throughput: 198.3 tasks/sec\n    Final workers: 3\n\u2705 Load simulation test passed (100.0% success)\n\n============================================================\n\ud83d\udcca Scaling Test Results: 5/5 test suites passed\n\ud83c\udf89 All scaling tests passed! System is optimized for production.\n"
+      },
+      "security_tests": {
+        "passed": false,
+        "output": "SQL injection pattern detected in query: (?i)(select|insert|update|delete|drop|create|alter|union|exec|execute)\nXSS pattern detected in script: (?i)<script[^>]*>.*?</script>\nCommand injection pattern detected in command: (?i)rm\\s+-rf\nSQL injection pattern detected in injection: (?i)(select|insert|update|delete|drop|create|alter|union|exec|execute)\nCircuit breaker test_service recorded failure (1/3): Service failure #1\nCircuit breaker test_service recorded failure (2/3): Service failure #2\nCircuit breaker test_service recorded failure (3/3): Service failure #3\nCircuit breaker test_service opened due to failures\nCircuit breaker test_service is OPEN, rejecting call\nCircuit breaker test_service is OPEN, rejecting call\nCircuit breaker test_service is OPEN, rejecting call\nCircuit breaker test_service is OPEN, rejecting call\nCircuit breaker test_service recorded failure (4/3): Service failure #4\nCircuit breaker test_service opened due to failures\nSQL injection pattern detected in query: (?i)(select|insert|update|delete|drop|create|alter|union|exec|execute)\n"
+      }
+    },
+    "configuration": {
+      "setup.py": {
+        "exists": true,
+        "has_version": true,
+        "has_dependencies": true,
+        "has_entry_points": true
+      },
+      "Dockerfile": {
+        "exists": true,
+        "has_python_base": true,
+        "has_workdir": true,
+        "has_copy": true,
+        "has_expose": true
+      },
+      "kubernetes": {
+        "files_present": 2,
+        "total_files": 2
+      }
+    },
+    "system_requirements": {
+      "cpu_cores": 2,
+      "cpu_usage_percent": 1.5,
+      "memory_total_gb": 3.8496856689453125,
+      "memory_available_gb": 3.2244834899902344,
+      "disk_total_gb": 23.527259826660156,
+      "disk_free_gb": 19.467952728271484,
+      "meets_requirements": false
+    }
+  },
+  "check_duration_seconds": 10.70444941520691
+}
