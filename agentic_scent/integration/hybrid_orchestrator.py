@@ -339,7 +339,14 @@ class HybridAgentOrchestrator(AgentOrchestrator):
     
     async def get_hybrid_status(self) -> Dict[str, Any]:
         """Get comprehensive hybrid orchestrator status."""
-        base_status = await super().get_status()
+        # Get base status manually instead of using super()
+        base_status = {
+            "registered_agents": len(self.agents),
+            "active_agents": len([agent for agent in self.agents.values() if hasattr(agent, 'is_active') and agent.is_active]),
+            "message_queue_size": len(self.message_queue),
+            "communication_protocols": list(self.protocols.keys()) if hasattr(self, 'protocols') else [],
+            "total_messages_processed": len(self.message_history) if hasattr(self, 'message_history') else 0
+        }
         
         hybrid_status = {
             **base_status,

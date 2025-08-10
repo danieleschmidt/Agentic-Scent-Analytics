@@ -8,7 +8,7 @@ import json
 import logging
 import secrets
 import uuid
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional, List, Union, Tuple
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from enum import Enum
@@ -42,13 +42,13 @@ class AuditEventType(Enum):
 @dataclass
 class AuditEvent:
     """Audit trail event."""
-    event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     event_type: AuditEventType
+    action: str
+    event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = field(default_factory=datetime.now)
     user_id: Optional[str] = None
     agent_id: Optional[str] = None
     resource: Optional[str] = None
-    action: str
     details: Dict[str, Any] = field(default_factory=dict)
     ip_address: Optional[str] = None
     user_agent: Optional[str] = None
