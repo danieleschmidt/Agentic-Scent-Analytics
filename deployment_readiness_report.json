@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-10T18:29:18.343224",
+  "timestamp": "2025-08-12T01:15:31.154628",
   "deployment_readiness": {
     "overall_status": "NEEDS_WORK",
     "readiness_score": 53.33333333333333,
@@ -72,7 +72,7 @@
       },
       "scaling_tests": {
         "passed": true,
-        "output": "\u2705 All scaling modules imported successfully\n\ud83d\ude80 Running Agentic Scent Analytics Scaling Tests\n============================================================\n\n\ud83d\udccb Testing Caching System\n----------------------------------------\n  \u2705 Cached data with key: test_analysis:batch_id:BATCH_001:sensor_id:e_nose_01\n  \u2705 Cache retrieval successful\n  \u2705 Cache stats - Memory: 1.00 hit rate\n                   Redis: 0.00 hit rate\n  \u2705 Cache miss handled correctly\n\u2705 Caching system test passed\n\n\ud83d\udccb Testing Task Pool System\n----------------------------------------\n  \u2705 Submitted 5 tasks\n  \u2705 test_task_0: 0.201s execution time\n  \u2705 test_task_1: 0.201s execution time\n  \u2705 test_task_2: 0.201s execution time\n  \u2705 test_task_3: 0.201s execution time\n  \u2705 test_task_4: 0.201s execution time\n  \u2705 Pool status: 3 workers, 5 completed\n  \u2705 Task pool stopped\n\u2705 Task pool test passed (100.0% success rate)\n\n\ud83d\udccb Testing Metrics System\n----------------------------------------\n  \u2705 Recorded various metrics\n  \u2705 Profiling: 0.1004s average\n  \u2705 Metrics collected: 4 counters, 1 histograms\n  \u2705 Prometheus metrics exported\n    agentic_scent_sensor_readings_total{sensor_id=\"e_nose_01\",sensor_type=\"MOS\"} 1.0\n\u2705 Metrics system test passed\n\n\ud83d\udccb Testing Optimized Factory System\n----------------------------------------\n  \u2705 Initial metrics: 1 agents\n  \u2705 Performance systems active: Task Pool=True, Cache=True, Metrics=True\n  \u2705 JSON metrics export successful\n  \u2705 Prometheus metrics export successful\n  \u2705 Cached analysis: first=0.1011s, second=0.1007s\n  \u2705 Factory stopped gracefully\n\u2705 Optimized factory test passed\n\n\ud83d\udccb Testing Load Simulation\n----------------------------------------\n  \u2705 Submitted 20 tasks in 0.000s\n  \u2705 Load test results:\n    Completed: 20/20 (100.0%)\n    Total time: 0.101s\n    Throughput: 198.3 tasks/sec\n    Final workers: 3\n\u2705 Load simulation test passed (100.0% success)\n\n============================================================\n\ud83d\udcca Scaling Test Results: 5/5 test suites passed\n\ud83c\udf89 All scaling tests passed! System is optimized for production.\n"
+        "output": "\u2705 All scaling modules imported successfully\n\ud83d\ude80 Running Agentic Scent Analytics Scaling Tests\n============================================================\n\n\ud83d\udccb Testing Caching System\n----------------------------------------\n  \u2705 Cached data with key: test_analysis:batch_id:BATCH_001:sensor_id:e_nose_01\n  \u2705 Cache retrieval successful\n  \u2705 Cache stats - Memory: 1.00 hit rate\n                   Redis: 0.00 hit rate\n  \u2705 Cache miss handled correctly\n\u2705 Caching system test passed\n\n\ud83d\udccb Testing Task Pool System\n----------------------------------------\n  \u2705 Submitted 5 tasks\n  \u2705 test_task_0: 0.201s execution time\n  \u2705 test_task_1: 0.201s execution time\n  \u2705 test_task_2: 0.201s execution time\n  \u2705 test_task_3: 0.201s execution time\n  \u2705 test_task_4: 0.201s execution time\n  \u2705 Pool status: 3 workers, 5 completed\n  \u2705 Task pool stopped\n\u2705 Task pool test passed (100.0% success rate)\n\n\ud83d\udccb Testing Metrics System\n----------------------------------------\n  \u2705 Recorded various metrics\n  \u2705 Profiling: 0.1004s average\n  \u2705 Metrics collected: 4 counters, 1 histograms\n  \u2705 Prometheus metrics exported\n    agentic_scent_sensor_readings_total{sensor_id=\"e_nose_01\",sensor_type=\"MOS\"} 1.0\n\u2705 Metrics system test passed\n\n\ud83d\udccb Testing Optimized Factory System\n----------------------------------------\n  \u2705 Initial metrics: 1 agents\n  \u2705 Performance systems active: Task Pool=True, Cache=True, Metrics=True\n  \u2705 JSON metrics export successful\n  \u2705 Prometheus metrics export successful\n  \u2705 Cached analysis: first=0.1013s, second=0.1008s\n  \u2705 Factory stopped gracefully\n\u2705 Optimized factory test passed\n\n\ud83d\udccb Testing Load Simulation\n----------------------------------------\n  \u2705 Submitted 20 tasks in 0.000s\n  \u2705 Load test results:\n    Completed: 20/20 (100.0%)\n    Total time: 0.101s\n    Throughput: 198.2 tasks/sec\n    Final workers: 3\n\u2705 Load simulation test passed (100.0% success)\n\n============================================================\n\ud83d\udcca Scaling Test Results: 5/5 test suites passed\n\ud83c\udf89 All scaling tests passed! System is optimized for production.\n"
       },
       "security_tests": {
         "passed": false,
@@ -100,13 +100,13 @@
     },
     "system_requirements": {
       "cpu_cores": 2,
-      "cpu_usage_percent": 1.5,
+      "cpu_usage_percent": 0.5,
       "memory_total_gb": 3.8496856689453125,
-      "memory_available_gb": 3.2244834899902344,
+      "memory_available_gb": 3.2337608337402344,
       "disk_total_gb": 23.527259826660156,
-      "disk_free_gb": 19.467952728271484,
+      "disk_free_gb": 19.288379669189453,
       "meets_requirements": false
     }
   },
-  "check_duration_seconds": 10.70444941520691
+  "check_duration_seconds": 13.10616159439087
 }

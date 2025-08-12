@@ -49,6 +49,11 @@ class HybridAgentOrchestrator(AgentOrchestrator):
         
         logger.info("Initialized Hybrid Agent Orchestrator")
     
+    async def start(self):
+        """Start the hybrid orchestrator."""
+        await self.start_autonomous_monitoring()
+        logger.info("Hybrid Agent Orchestrator started")
+    
     async def coordinate_hybrid_analysis(self, sensor_data: Dict[str, Any], 
                                        context: str = "") -> Dict[str, Any]:
         """
