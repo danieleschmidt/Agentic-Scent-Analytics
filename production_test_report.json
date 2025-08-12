@@ -4,34 +4,34 @@
     "passed_tests": 3,
     "failed_tests": 1,
     "pass_rate": 0.75,
-    "total_duration": 4.380546569824219,
-    "timestamp": "2025-08-10T18:24:48.214495"
+    "total_duration": 5.104821443557739,
+    "timestamp": "2025-08-12T01:10:28.028459"
   },
   "test_results": {
     "integration_e2e": {
       "success": false,
-      "duration": 0.032599449157714844,
-      "timestamp": "2025-08-10T18:24:43.868225",
+      "duration": 0.6896252632141113,
+      "timestamp": "2025-08-12T01:10:23.614571",
       "details": {
-        "error": "'HybridAgentOrchestrator' object has no attribute 'start'"
+        "error": "'super' object has no attribute 'start'"
       }
     },
     "performance_benchmarks": {
       "success": true,
-      "duration": 1.7347874641418457,
-      "timestamp": "2025-08-10T18:24:45.603057",
+      "duration": 1.8040924072265625,
+      "timestamp": "2025-08-12T01:10:25.418713",
       "details": {
-        "task_throughput": 70.67843004825467,
-        "cache_write_rate": 56214.871602423205,
-        "cache_read_rate": 276979.7266063528,
+        "task_throughput": 70.5469023845614,
+        "cache_write_rate": 11713.64258385232,
+        "cache_read_rate": 245971.38165611072,
         "cache_hit_rate": 1.0,
-        "llm_rate": 9.948899948219184
+        "llm_rate": 9.949655167669428
       }
     },
     "error_recovery": {
       "success": true,
-      "duration": 2.605760335922241,
-      "timestamp": "2025-08-10T18:24:48.209203",
+      "duration": 2.6052331924438477,
+      "timestamp": "2025-08-12T01:10:28.024360",
       "details": {
         "task_recovery_rate": 0.6,
         "system_health": "healthy"
@@ -39,8 +39,8 @@
     },
     "security_compliance": {
       "success": true,
-      "duration": 0.005207061767578125,
-      "timestamp": "2025-08-10T18:24:48.214451",
+      "duration": 0.00402379035949707,
+      "timestamp": "2025-08-12T01:10:28.028410",
       "details": {
         "log_files_created": 9,
         "safe_validations": 3
@@ -48,11 +48,11 @@
     }
   },
   "performance_summary": {
-    "task_throughput": 70.67843004825467,
-    "cache_write_rate": 56214.871602423205,
-    "cache_read_rate": 276979.7266063528,
+    "task_throughput": 70.5469023845614,
+    "cache_write_rate": 11713.64258385232,
+    "cache_read_rate": 245971.38165611072,
     "cache_hit_rate": 1.0,
-    "llm_rate": 9.948899948219184
+    "llm_rate": 9.949655167669428
   },
   "production_readiness": {
     "ready": false,

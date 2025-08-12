@@ -204,11 +204,11 @@ class QualityControlAgent(BaseAgent):
                                          trend: Dict) -> str:
         """Perform root cause analysis using LLM."""
         
-        # Prepare sensor data context for specialized analysis
+        # Prepare sensor data context for specialized analysis with JSON-serializable data
         sensor_data = {
             "sensor_id": reading.sensor_id,
             "timestamp": reading.timestamp.isoformat(),
-            "values": reading.values,
+            "values": [float(v) for v in reading.values],  # Ensure JSON serializable
             "statistics": {
                 "mean": float(np.mean(reading.values)),
                 "std": float(np.std(reading.values)),
@@ -216,9 +216,9 @@ class QualityControlAgent(BaseAgent):
                 "max": float(np.max(reading.values)),
                 "channels": len(reading.values)
             },
-            "contamination_analysis": contamination,
-            "process_analysis": process,
-            "trend_analysis": trend
+            "contamination_analysis": self._make_json_serializable(contamination),
+            "process_analysis": self._make_json_serializable(process),
+            "trend_analysis": self._make_json_serializable(trend)
         }
         
         context = "Root cause analysis for quality deviation detection"
@@ -232,9 +232,27 @@ class QualityControlAgent(BaseAgent):
             if contamination['anomaly']:
                 return f"Contamination detected: {contamination.get('suspected_contaminant', 'unknown source')}"
             elif process['anomaly']:
-                return f"Process deviation: excessive variation (std={process['mean_deviation']:.3f})"
+                return f"Process deviation: excessive variation (std={process.get('mean_deviation', 0.0):.3f})"
             else:
                 return "Sensor drift or calibration issue"
+    
+    def _make_json_serializable(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert data to JSON-serializable format."""
+        serializable = {}
+        for key, value in data.items():
+            if isinstance(value, bool):
+                serializable[key] = value
+            elif isinstance(value, (int, float)):
+                serializable[key] = float(value) if not isinstance(value, bool) else value
+            elif isinstance(value, str):
+                serializable[key] = value
+            elif isinstance(value, list):
+                serializable[key] = [float(v) if isinstance(v, (int, float)) and not isinstance(v, bool) else v for v in value]
+            elif value is None:
+                serializable[key] = value
+            else:
+                serializable[key] = str(value)  # Fallback to string representation
+        return serializable
     
     async def _generate_corrective_action(self, root_cause: str) -> str:
         """Generate corrective action recommendations."""
