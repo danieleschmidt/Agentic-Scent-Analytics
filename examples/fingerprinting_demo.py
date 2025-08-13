@@ -49,9 +49,9 @@ def generate_test_sample(product_name: str, contamination_level: float = 0.0) ->
     """Generate a test sample with optional contamination."""
     # Base signature
     if product_name == "aspirin_500mg":
-        base_signature = [500, 120, 80, 200, 150, 90, 300, 180] + [100] * 24
+        base_signature = [500, 120, 80, 200, 150, 90, 300, 180] + [100] * 31
     else:
-        base_signature = [400, 150, 100, 175, 125, 95, 275, 170] + [90] * 24
+        base_signature = [400, 150, 100, 175, 125, 95, 275, 170] + [90] * 31
     
     # Add normal variation
     variation = np.random.normal(1.0, 0.03, len(base_signature))
