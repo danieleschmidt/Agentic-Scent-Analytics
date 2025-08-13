@@ -552,7 +552,7 @@ class SecurityManager:
             context = SecurityContext(
                 user_id=username,
                 session_id=session_id,
-                permissions=["read", "write", "admin"],
+                permissions=["read", "write"] if username != "admin" else ["read", "write", "admin"],
                 security_level=SecurityLevel.CONFIDENTIAL,
                 authenticated=True,
                 session_expires=datetime.now() + self.session_timeout
@@ -623,7 +623,12 @@ class SecurityManager:
         if not context.authenticated:
             return False
         
-        return permission in context.permissions or "admin" in context.permissions
+        # Admin users have all standard permissions but not arbitrary ones
+        if "admin" in context.permissions:
+            allowed_permissions = ["read", "write", "admin", "delete", "modify", "audit", "manage"]
+            return permission in allowed_permissions
+        
+        return permission in context.permissions
     
     def log_security_event(self, event_type: AuditEventType, **kwargs):
         """Log a security-related event."""

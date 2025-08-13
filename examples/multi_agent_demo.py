@@ -42,28 +42,28 @@ async def main():
     # Create specialized agents
     agents = {
         'inlet_monitor': create_agent(
-            type='quality_control',
+            agent_type='quality_control',
             focus='raw_material_inspection',
             sensors=['e_nose_array_1', 'moisture_sensor'],
             knowledge='raw_material_specs.yaml'
         ),
         
         'process_monitor': create_agent(
-            type='process_control',
+            agent_type='process_control',
             focus='reaction_monitoring',
             sensors=['e_nose_array_2', 'temperature_probes'],
             knowledge='reaction_kinetics.db'
         ),
         
         'packaging_inspector': create_agent(
-            type='quality_control',
+            agent_type='quality_control',
             focus='final_product_verification',
             sensors=['e_nose_array_3', 'vision_system'],
             knowledge='product_standards.json'
         ),
         
         'maintenance_predictor': create_agent(
-            type='predictive_maintenance',
+            agent_type='predictive_maintenance',
             focus='equipment_health',
             sensors='all',
             knowledge='equipment_history.db'
