@@ -1,5 +1,8 @@
 """
 Core factory management system for industrial scent analytics.
+Enhanced with autonomous SDLC capabilities including progressive quality gates,
+autonomous testing, global deployment orchestration, ML performance optimization,
+and zero-trust security framework.
 """
 
 import asyncio
@@ -15,6 +18,13 @@ from .caching import create_optimized_cache, MultiLevelCache, cached
 from .task_pool import create_optimized_task_pool, AutoScalingTaskPool, TaskPriority
 from .metrics import create_metrics_system, PrometheusMetrics, PerformanceProfiler
 from .logging_config import get_contextual_logger, LoggingMixin
+
+# Enhanced SDLC modules
+from .progressive_quality_gates import create_progressive_quality_gates, ProgressiveQualityGates
+from .autonomous_testing import create_autonomous_testing_framework, AutonomousTestingFramework
+from .global_deployment_orchestrator import create_global_deployment_orchestrator, GlobalDeploymentOrchestrator
+from .ml_performance_optimizer import create_ml_performance_optimizer, MLPerformanceOptimizer
+from .zero_trust_security import create_zero_trust_security_framework, ZeroTrustSecurityFramework
 
 
 @dataclass
@@ -40,11 +50,15 @@ class ProcessParameters:
 
 class ScentAnalyticsFactory(LoggingMixin):
     """
-    High-performance factory analytics system with auto-scaling and caching.
+    Enhanced high-performance factory analytics system with auto-scaling, caching,
+    and autonomous SDLC capabilities including progressive quality gates, autonomous
+    testing, global deployment orchestration, ML performance optimization, and
+    zero-trust security framework.
     """
     
     def __init__(self, production_line: str, e_nose_config: Dict[str, Any], 
-                 site_id: str = "default", enable_scaling: bool = True):
+                 site_id: str = "default", enable_scaling: bool = True,
+                 enable_autonomous_sdlc: bool = True):
         super().__init__()
         
         self.config = FactoryConfig(
@@ -64,6 +78,14 @@ class ScentAnalyticsFactory(LoggingMixin):
         self.metrics: Optional[PrometheusMetrics] = None
         self.profiler: Optional[PerformanceProfiler] = None
         
+        # Enhanced SDLC components
+        self.enable_autonomous_sdlc = enable_autonomous_sdlc
+        self.quality_gates: Optional[ProgressiveQualityGates] = None
+        self.autonomous_testing: Optional[AutonomousTestingFramework] = None
+        self.deployment_orchestrator: Optional[GlobalDeploymentOrchestrator] = None
+        self.performance_optimizer: Optional[MLPerformanceOptimizer] = None
+        self.security_framework: Optional[ZeroTrustSecurityFramework] = None
+        
         # Set logging context
         self.logger.set_context(
             site_id=site_id,
@@ -72,6 +94,10 @@ class ScentAnalyticsFactory(LoggingMixin):
         
         # Initialize performance systems
         self._initialize_performance_systems()
+        
+        # Initialize enhanced SDLC systems
+        if enable_autonomous_sdlc:
+            self._initialize_autonomous_sdlc_systems()
         
         # Initialize sensor interfaces based on config
         self._initialize_sensors()
@@ -90,6 +116,214 @@ class ScentAnalyticsFactory(LoggingMixin):
         except Exception as e:
             self.logger.warning(f"Failed to initialize metrics: {e}")
             self.metrics, self.profiler = None, None
+    
+    def _initialize_autonomous_sdlc_systems(self):
+        """Initialize autonomous SDLC systems."""
+        try:
+            from .config import ConfigManager
+            config_manager = ConfigManager()
+            
+            # Initialize Progressive Quality Gates
+            self.quality_gates = create_progressive_quality_gates()
+            self.logger.info("Progressive Quality Gates initialized")
+            
+            # Initialize Autonomous Testing Framework
+            self.autonomous_testing = create_autonomous_testing_framework()
+            self.logger.info("Autonomous Testing Framework initialized")
+            
+            # Initialize Global Deployment Orchestrator
+            self.deployment_orchestrator = create_global_deployment_orchestrator()
+            self.logger.info("Global Deployment Orchestrator initialized")
+            
+            # Initialize ML Performance Optimizer
+            self.performance_optimizer = create_ml_performance_optimizer()
+            self.logger.info("ML Performance Optimizer initialized")
+            
+            # Initialize Zero-Trust Security Framework
+            self.security_framework = create_zero_trust_security_framework()
+            self.logger.info("Zero-Trust Security Framework initialized")
+            
+            self.logger.info("All autonomous SDLC systems initialized successfully")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to initialize autonomous SDLC systems: {e}")
+            # Set components to None if initialization fails
+            self.quality_gates = None
+            self.autonomous_testing = None
+            self.deployment_orchestrator = None
+            self.performance_optimizer = None
+            self.security_framework = None
+    
+    async def _start_autonomous_sdlc_monitoring(self):
+        """Start autonomous SDLC monitoring systems."""
+        sdlc_tasks = []
+        
+        try:
+            # Start ML Performance Optimizer
+            if self.performance_optimizer:
+                sdlc_tasks.append(
+                    asyncio.create_task(
+                        self.performance_optimizer.start_continuous_optimization(),
+                        name="ml_performance_optimizer"
+                    )
+                )
+                self.logger.info("Started ML Performance Optimizer")
+            
+            # Start Zero-Trust Security Framework
+            if self.security_framework:
+                sdlc_tasks.append(
+                    asyncio.create_task(
+                        self.security_framework.start_zero_trust_monitoring(),
+                        name="zero_trust_security"
+                    )
+                )
+                self.logger.info("Started Zero-Trust Security Framework")
+            
+            # Start Global Deployment Orchestrator monitoring
+            if self.deployment_orchestrator:
+                sdlc_tasks.append(
+                    asyncio.create_task(
+                        self.deployment_orchestrator.continuous_monitoring_loop(),
+                        name="deployment_orchestrator"
+                    )
+                )
+                self.logger.info("Started Global Deployment Orchestrator")
+            
+            # Store tasks for cleanup
+            self._sdlc_tasks = sdlc_tasks
+            
+            self.logger.info(f"Started {len(sdlc_tasks)} autonomous SDLC monitoring tasks")
+            
+        except Exception as e:
+            self.logger.error(f"Failed to start autonomous SDLC monitoring: {e}")
+            # Cancel any started tasks
+            for task in sdlc_tasks:
+                if not task.done():
+                    task.cancel()
+    
+    async def execute_autonomous_testing(self, codebase_path: str = ".") -> Dict[str, Any]:
+        """Execute autonomous testing on the codebase."""
+        if not self.autonomous_testing:
+            return {"error": "Autonomous testing framework not initialized"}
+        
+        try:
+            self.logger.info("Starting autonomous testing execution")
+            report = await self.autonomous_testing.analyze_and_test_codebase(codebase_path)
+            self.logger.info("Autonomous testing completed successfully")
+            return report
+        except Exception as e:
+            self.logger.error(f"Autonomous testing failed: {e}")
+            return {"error": str(e)}
+    
+    async def execute_progressive_quality_gates(self, commit_hash: Optional[str] = None,
+                                              branch: Optional[str] = None,
+                                              fast_mode: bool = False) -> Dict[str, Any]:
+        """Execute progressive quality gates pipeline."""
+        if not self.quality_gates:
+            return {"error": "Progressive quality gates not initialized"}
+        
+        try:
+            self.logger.info("Starting progressive quality gates execution")
+            results = await self.quality_gates.execute_progressive_pipeline(
+                commit_hash=commit_hash,
+                branch=branch,
+                fast_mode=fast_mode
+            )
+            self.logger.info("Progressive quality gates completed successfully")
+            return {"results": results}
+        except Exception as e:
+            self.logger.error(f"Progressive quality gates failed: {e}")
+            return {"error": str(e)}
+    
+    async def deploy_to_regions(self, version: str, 
+                              regions: List[str],
+                              strategy: str = "blue_green") -> Dict[str, Any]:
+        """Deploy to multiple regions using global deployment orchestrator."""
+        if not self.deployment_orchestrator:
+            return {"error": "Global deployment orchestrator not initialized"}
+        
+        try:
+            from .global_deployment_orchestrator import DeploymentRegion, DeploymentStrategy
+            
+            # Convert string regions to enum
+            target_regions = [DeploymentRegion(region) for region in regions]
+            deployment_strategy = DeploymentStrategy(strategy)
+            
+            self.logger.info(f"Starting global deployment of version {version}")
+            results = await self.deployment_orchestrator.orchestrate_global_deployment(
+                version=version,
+                target_regions=target_regions,
+                strategy=deployment_strategy
+            )
+            self.logger.info("Global deployment completed successfully")
+            return {"results": results}
+        except Exception as e:
+            self.logger.error(f"Global deployment failed: {e}")
+            return {"error": str(e)}
+    
+    def get_autonomous_sdlc_status(self) -> Dict[str, Any]:
+        """Get status of all autonomous SDLC systems."""
+        status = {
+            "timestamp": datetime.now().isoformat(),
+            "autonomous_sdlc_enabled": self.enable_autonomous_sdlc,
+            "systems": {}
+        }
+        
+        # Quality Gates status
+        if self.quality_gates:
+            try:
+                status["systems"]["quality_gates"] = {
+                    "active": True,
+                    "recent_trends": self.quality_gates.get_quality_trends()
+                }
+            except Exception as e:
+                status["systems"]["quality_gates"] = {"active": False, "error": str(e)}
+        else:
+            status["systems"]["quality_gates"] = {"active": False}
+        
+        # Autonomous Testing status
+        if self.autonomous_testing:
+            status["systems"]["autonomous_testing"] = {"active": True}
+        else:
+            status["systems"]["autonomous_testing"] = {"active": False}
+        
+        # Deployment Orchestrator status
+        if self.deployment_orchestrator:
+            try:
+                status["systems"]["deployment_orchestrator"] = {
+                    "active": True,
+                    "active_deployments": len(self.deployment_orchestrator.active_deployments)
+                }
+            except Exception as e:
+                status["systems"]["deployment_orchestrator"] = {"active": False, "error": str(e)}
+        else:
+            status["systems"]["deployment_orchestrator"] = {"active": False}
+        
+        # Performance Optimizer status
+        if self.performance_optimizer:
+            try:
+                status["systems"]["performance_optimizer"] = {
+                    "active": True,
+                    "summary": self.performance_optimizer.get_optimization_summary()
+                }
+            except Exception as e:
+                status["systems"]["performance_optimizer"] = {"active": False, "error": str(e)}
+        else:
+            status["systems"]["performance_optimizer"] = {"active": False}
+        
+        # Security Framework status
+        if self.security_framework:
+            try:
+                status["systems"]["security_framework"] = {
+                    "active": True,
+                    "dashboard": self.security_framework.get_security_dashboard()
+                }
+            except Exception as e:
+                status["systems"]["security_framework"] = {"active": False, "error": str(e)}
+        else:
+            status["systems"]["security_framework"] = {"active": False}
+        
+        return status
     
     async def _initialize_async_systems(self):
         """Initialize async performance systems."""
@@ -134,14 +368,18 @@ class ScentAnalyticsFactory(LoggingMixin):
         self.logger.info(f"Registered agent: {agent.agent_id}")
     
     async def start_monitoring(self, batch_id: Optional[str] = None):
-        """Start high-performance continuous monitoring."""
+        """Start enhanced high-performance continuous monitoring with autonomous SDLC."""
         self.current_batch_id = batch_id or f"batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.is_monitoring = True
         
         # Initialize async performance systems
         await self._initialize_async_systems()
         
-        self.logger.info(f"Starting optimized monitoring for batch {self.current_batch_id}")
+        self.logger.info(f"Starting enhanced monitoring for batch {self.current_batch_id}")
+        
+        # Start autonomous SDLC systems
+        if self.enable_autonomous_sdlc:
+            await self._start_autonomous_sdlc_monitoring()
         
         # Update metrics
         if self.metrics:
