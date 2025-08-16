@@ -27,9 +27,9 @@ import numpy as np
 from collections import deque, defaultdict
 
 from .config import ConfigManager
-from .validation import ValidationManager
+from .validation import AdvancedDataValidator
 from .security import SecurityManager
-from .metrics import MetricsCollector
+from .metrics import PrometheusMetrics
 
 
 class OptimizationStrategy(Enum):
@@ -723,9 +723,9 @@ class MLPerformanceOptimizer:
     def __init__(self, config_manager: ConfigManager):
         self.config = config_manager
         self.logger = logging.getLogger(__name__)
-        self.validation = ValidationManager()
+        self.validation = AdvancedDataValidator()
         self.security = SecurityManager()
-        self.metrics = MetricsCollector()
+        self.metrics = PrometheusMetrics()
         
         self.predictor = PerformancePredictor()
         self.resource_manager = AdaptiveResourceManager()

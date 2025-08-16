@@ -1,0 +1,17 @@
+{
+  "weights": {
+    "cpu_utilization": 0.25,
+    "memory_utilization": 0.2,
+    "disk_io": 0.15,
+    "network_io": 0.15,
+    "cache_efficiency": 0.15,
+    "concurrent_load": 0.1,
+    "cpu_memory_interaction": 0.05,
+    "io_contention": 0.03,
+    "temporal_patterns": 0.02
+  },
+  "training_data_count": 0,
+  "accuracy_history": [],
+  "feature_importance": {},
+  "export_timestamp": "2025-08-16T19:17:50.266643"
+}

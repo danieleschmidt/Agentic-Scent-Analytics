@@ -51,7 +51,7 @@ class SystemMetrics:
     timestamp: datetime = field(default_factory=datetime.now)
 
 
-class MetricsCollector:
+class PrometheusMetrics:
     """
     Collects and exports metrics for monitoring.
     """

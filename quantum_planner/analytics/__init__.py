@@ -1,13 +1,13 @@
 """Performance analytics and optimization modules."""
 
-from .performance_monitor import PerformanceMonitor
-from .metrics_collector import MetricsCollector
+from .performance_monitor import TaskPool
+from .metrics_collector import PrometheusMetrics
 from .optimizer import SystemOptimizer
 from .forecaster import TaskForecaster
 
 __all__ = [
-    "PerformanceMonitor",
-    "MetricsCollector",
+    "TaskPool",
+    "PrometheusMetrics",
     "SystemOptimizer", 
     "TaskForecaster",
 ]
