@@ -28,7 +28,7 @@ import traceback
 
 import numpy as np
 from .config import ConfigManager
-from .validation import ValidationManager
+from .validation import AdvancedDataValidator
 
 
 class TestType(Enum):

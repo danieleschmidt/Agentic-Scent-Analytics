@@ -33,7 +33,7 @@ class PerformanceAlert:
     timestamp: datetime = field(default_factory=datetime.now)
 
 
-class PerformanceMonitor:
+class TaskPool:
     """Real-time performance monitoring with quantum-inspired analytics."""
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
@@ -57,7 +57,7 @@ class PerformanceMonitor:
             "agent_availability": {"min": 0.7, "max": 1.0}
         }
         
-        logger.info("PerformanceMonitor initialized")
+        logger.info("TaskPool initialized")
     
     async def start_monitoring(self):
         """Start real-time performance monitoring."""

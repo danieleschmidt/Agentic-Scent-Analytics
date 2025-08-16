@@ -20,11 +20,17 @@ from .metrics import create_metrics_system, PrometheusMetrics, PerformanceProfil
 from .logging_config import get_contextual_logger, LoggingMixin
 
 # Enhanced SDLC modules
-from .progressive_quality_gates import create_progressive_quality_gates, ProgressiveQualityGates
-from .autonomous_testing import create_autonomous_testing_framework, AutonomousTestingFramework
-from .global_deployment_orchestrator import create_global_deployment_orchestrator, GlobalDeploymentOrchestrator
-from .ml_performance_optimizer import create_ml_performance_optimizer, MLPerformanceOptimizer
-from .zero_trust_security import create_zero_trust_security_framework, ZeroTrustSecurityFramework
+# Enhanced SDLC modules - optional imports for basic functionality
+try:
+    from .progressive_quality_gates import create_progressive_quality_gates, ProgressiveQualityGates
+    from .autonomous_testing import create_autonomous_testing_framework, AutonomousTestingFramework
+    from .global_deployment_orchestrator import create_global_deployment_orchestrator, GlobalDeploymentOrchestrator
+    from .ml_performance_optimizer import create_ml_performance_optimizer, MLPerformanceOptimizer
+    from .zero_trust_security import create_zero_trust_security_framework, ZeroTrustSecurityFramework
+    ENHANCED_SDLC_AVAILABLE = True
+except ImportError as e:
+    logging.warning(f"Enhanced SDLC modules not available: {e}")
+    ENHANCED_SDLC_AVAILABLE = False
 
 
 @dataclass
@@ -96,7 +102,7 @@ class ScentAnalyticsFactory(LoggingMixin):
         self._initialize_performance_systems()
         
         # Initialize enhanced SDLC systems
-        if enable_autonomous_sdlc:
+        if enable_autonomous_sdlc and ENHANCED_SDLC_AVAILABLE:
             self._initialize_autonomous_sdlc_systems()
         
         # Initialize sensor interfaces based on config
@@ -119,6 +125,10 @@ class ScentAnalyticsFactory(LoggingMixin):
     
     def _initialize_autonomous_sdlc_systems(self):
         """Initialize autonomous SDLC systems."""
+        if not ENHANCED_SDLC_AVAILABLE:
+            self.logger.warning("Enhanced SDLC modules not available")
+            return
+            
         try:
             from .config import ConfigManager
             config_manager = ConfigManager()

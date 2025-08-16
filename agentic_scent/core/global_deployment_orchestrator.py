@@ -23,10 +23,10 @@ import yaml
 
 import numpy as np
 from .config import ConfigManager
-from .validation import ValidationManager
+from .validation import AdvancedDataValidator
 from .security import SecurityManager
-from .performance import PerformanceMonitor
-from .metrics import MetricsCollector
+from .performance import TaskPool
+from .metrics import PrometheusMetrics
 
 
 class DeploymentRegion(Enum):
@@ -464,10 +464,10 @@ class GlobalDeploymentOrchestrator:
     def __init__(self, config_manager: ConfigManager):
         self.config = config_manager
         self.logger = logging.getLogger(__name__)
-        self.validation = ValidationManager()
+        self.validation = AdvancedDataValidator()
         self.security = SecurityManager()
-        self.performance = PerformanceMonitor()
-        self.metrics = MetricsCollector()
+        self.performance = TaskPool()
+        self.metrics = PrometheusMetrics()
         
         self.traffic_router = TrafficRouter()
         self.auto_scaler = AutoScaler()
