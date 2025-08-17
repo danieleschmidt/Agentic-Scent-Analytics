@@ -519,6 +519,14 @@ class SecurityManager:
         self.max_failed_attempts = self.config.get('max_failed_attempts', 3)
         self.failed_attempts: Dict[str, int] = {}
         
+    def hash_password(self, password: str) -> str:
+        """Hash a password using bcrypt."""
+        return self.crypto.hash_password(password)
+    
+    def verify_password(self, password: str, hashed: str) -> bool:
+        """Verify a password against its hash."""
+        return self.crypto.verify_password(password, hashed)
+    
     def authenticate_user(self, username: str, password: str, 
                          ip_address: Optional[str] = None) -> Optional[SecurityContext]:
         """
