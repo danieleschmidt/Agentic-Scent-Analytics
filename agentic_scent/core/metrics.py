@@ -48,9 +48,24 @@ class PrometheusMetrics:
         
         from prometheus_client import Counter, Histogram, Gauge
         
-        # System metrics
-        self.sensor_readings_total = Counter(
+        # Initialize specific metrics
+        self.sensor_readings_counter = Counter(
             'agentic_scent_sensor_readings_total',
+            'Total sensor readings processed',
+            ['sensor_id', 'sensor_type'],
+            registry=self.registry
+        )
+        
+        self.agent_analysis_histogram = Histogram(
+            'agentic_scent_agent_analysis_duration_seconds',
+            'Time spent on agent analysis',
+            ['agent_id'],
+            registry=self.registry
+        )
+        
+        # System metrics - avoid duplicate names
+        self.sensor_readings_total = Counter(
+            'agentic_scent_sensor_readings_processed_total',
             'Total sensor readings processed',
             ['sensor_id', 'sensor_type'],
             registry=self.registry
@@ -131,6 +146,17 @@ class PrometheusMetrics:
         
         # Internal tracking
         self._counters[f"sensor_readings_{sensor_id}"] += 1
+    
+    def record_agent_analysis(self, duration: float, agent_id: str = "default"):
+        """Record agent analysis duration."""
+        if self.prometheus_available and hasattr(self, 'agent_analysis_histogram'):
+            self.agent_analysis_histogram.labels(agent_id=agent_id).observe(duration)
+        
+        # Internal tracking
+        key = f"agent_analysis_{agent_id}"
+        self._histograms[key].append(duration)
+        if len(self._histograms[key]) > 1000:
+            self._histograms[key] = self._histograms[key][-500:]
     
     def record_analysis_duration(self, agent_id: str, analysis_type: str, duration: float):
         """Record analysis execution time."""

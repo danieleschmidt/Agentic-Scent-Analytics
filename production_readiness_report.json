@@ -1,9 +1,9 @@
 {
-  "timestamp": 1755371876.0943968,
+  "timestamp": 1755465924.088648,
   "readiness_level": "NOT_READY",
-  "readiness_score": 0.4444444444444444,
+  "readiness_score": 0.5555555555555556,
   "test_results": {
-    "docker_config": false,
+    "docker_config": true,
     "k8s_manifests": false,
     "env_config": true,
     "security_config": false,
@@ -15,7 +15,7 @@
   },
   "summary": {
     "total_tests": 9,
-    "passed_tests": 4,
-    "failed_tests": 5
+    "passed_tests": 5,
+    "failed_tests": 4
   }
 }

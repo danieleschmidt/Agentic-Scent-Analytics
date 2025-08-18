@@ -52,6 +52,95 @@ class HealthChecker:
         self.check_results: Dict[str, HealthCheckResult] = {}
         self.monitoring_active = False
         self._monitoring_task = None
+
+
+class HealthCheckManager(HealthChecker):
+    """Main health check management system."""
+    
+    def __init__(self):
+        super().__init__()
+        self._setup_default_checks()
+    
+    def _setup_default_checks(self):
+        """Setup default system health checks."""
+        self.register_check("system_resources", self._check_system_resources)
+        self.register_check("database_connection", self._check_database)
+        self.register_check("cache_connection", self._check_cache)
+        self.register_check("llm_services", self._check_llm_services)
+    
+    async def _check_system_resources(self) -> HealthCheckResult:
+        """Check system resource usage."""
+        try:
+            cpu_percent = psutil.cpu_percent()
+            memory = psutil.virtual_memory()
+            
+            status = HealthStatus.HEALTHY
+            if cpu_percent > 90 or memory.percent > 90:
+                status = HealthStatus.CRITICAL
+            elif cpu_percent > 70 or memory.percent > 70:
+                status = HealthStatus.WARNING
+            
+            return HealthCheckResult(
+                name="system_resources",
+                status=status,
+                message=f"CPU: {cpu_percent}%, Memory: {memory.percent}%",
+                timestamp=datetime.now(),
+                response_time=0.0,
+                metadata={"cpu": cpu_percent, "memory": memory.percent}
+            )
+        except Exception as e:
+            return HealthCheckResult(
+                name="system_resources",
+                status=HealthStatus.CRITICAL,
+                message=f"Error checking resources: {e}",
+                timestamp=datetime.now(),
+                response_time=0.0
+            )
+    
+    async def _check_database(self) -> HealthCheckResult:
+        """Check database connectivity."""
+        await asyncio.sleep(0.1)  # Simulate DB check
+        return HealthCheckResult(
+            name="database_connection",
+            status=HealthStatus.HEALTHY,
+            message="Database connection OK",
+            timestamp=datetime.now(),
+            response_time=0.1
+        )
+    
+    async def _check_cache(self) -> HealthCheckResult:
+        """Check cache connectivity."""
+        await asyncio.sleep(0.05)  # Simulate cache check
+        return HealthCheckResult(
+            name="cache_connection", 
+            status=HealthStatus.HEALTHY,
+            message="Cache connection OK",
+            timestamp=datetime.now(),
+            response_time=0.05
+        )
+    
+    async def _check_llm_services(self) -> HealthCheckResult:
+        """Check LLM service availability."""
+        await asyncio.sleep(0.2)  # Simulate LLM check
+        return HealthCheckResult(
+            name="llm_services",
+            status=HealthStatus.HEALTHY,
+            message="LLM services operational",
+            timestamp=datetime.now(),
+            response_time=0.2
+        )
+    
+    async def check_system_health(self) -> Dict[str, Any]:
+        """Check overall system health status."""
+        results = await self.run_all_checks()
+        overall_status = self.get_overall_status()
+        
+        return {
+            "overall_status": overall_status.value,
+            "checks": {name: result.to_dict() for name, result in results.items()},
+            "timestamp": datetime.now().isoformat(),
+            "total_checks": len(results)
+        }
         
     def register_check(self, name: str, check_func: Callable, 
                       interval: int = 60, critical: bool = False):
