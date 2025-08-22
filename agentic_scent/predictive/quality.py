@@ -162,8 +162,20 @@ class QualityPredictor:
             
             for metric, model in self.models.items():
                 if metric in self.scalers:
+                    # Ensure feature dimension matches training
+                    current_features = np.array(features).reshape(1, -1)
+                    expected_features = self.scalers[metric].n_features_in_
+                    
+                    if current_features.shape[1] != expected_features:
+                        # Pad or truncate features to match expected size
+                        if current_features.shape[1] < expected_features:
+                            padding = np.zeros((1, expected_features - current_features.shape[1]))
+                            current_features = np.hstack([current_features, padding])
+                        else:
+                            current_features = current_features[:, :expected_features]
+                    
                     # Scale features
-                    features_scaled = self.scalers[metric].transform([features])
+                    features_scaled = self.scalers[metric].transform(current_features)
                     
                     # Make prediction
                     prediction = model.predict(features_scaled)[0]

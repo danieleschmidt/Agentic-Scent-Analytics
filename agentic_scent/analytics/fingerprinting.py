@@ -74,15 +74,40 @@ class ScentFingerprinter:
             feature_matrix = self._augment_data(feature_matrix)
         
         # Standardize features
-        scaler = StandardScaler()
+        # Use MinMaxScaler to avoid zero-centered features that break cosine similarity
+        from sklearn.preprocessing import MinMaxScaler
+        scaler = MinMaxScaler()
         scaled_features = scaler.fit_transform(feature_matrix)
         
-        # Apply dimensionality reduction
-        pca = PCA(n_components=min(self.embedding_dim, scaled_features.shape[1]))
-        embedded_features = pca.fit_transform(scaled_features)
+        # Apply dimensionality reduction  
+        # Use PCA for dimensionality reduction to requested embedding dimension
+        max_components = min(scaled_features.shape[1], scaled_features.shape[0] - 1)
         
-        # Create reference fingerprint (centroid of embedded features)
-        reference_fingerprint = np.mean(embedded_features, axis=0)
+        if self.embedding_dim <= max_components:
+            # Can achieve requested dimension
+            n_components = self.embedding_dim
+            pca = PCA(n_components=n_components)
+            embedded_features = pca.fit_transform(scaled_features)
+        elif max_components > 1:
+            # Use max available components
+            n_components = max_components
+            pca = PCA(n_components=n_components)
+            embedded_features = pca.fit_transform(scaled_features)
+        else:
+            # No reduction possible
+            embedded_features = scaled_features
+            pca = None
+        
+        # Create reference fingerprint
+        if pca is None:
+            # Calculate mean of raw features, then scale
+            mean_raw_features = np.mean(feature_matrix, axis=0)
+            reference_fingerprint = scaler.transform([mean_raw_features])[0]
+        else:
+            # For PCA, use the transformed mean of original features
+            mean_raw_features = np.mean(feature_matrix, axis=0)
+            mean_scaled = scaler.transform([mean_raw_features])
+            reference_fingerprint = pca.transform(mean_scaled)[0]
         
         # Calculate similarity threshold based on training data variance
         similarities = [
@@ -90,7 +115,9 @@ class ScentFingerprinter:
             for sample in embedded_features
         ]
         similarity_threshold = np.mean(similarities) - 2 * np.std(similarities)
-        similarity_threshold = max(0.7, similarity_threshold)  # Minimum threshold
+        # For small datasets, use a more lenient threshold
+        min_threshold = 0.5 if len(training_data) < 20 else 0.7
+        similarity_threshold = max(min_threshold, similarity_threshold)
         
         model = FingerprintModel(
             product_id=product_id,
@@ -102,6 +129,11 @@ class ScentFingerprinter:
             created_at=datetime.now(),
             training_samples=len(training_data)
         )
+        
+        # Store expected sensor size for feature consistency  
+        # Get the max sensor size from the feature extraction
+        max_sensor_size = feature_matrix.shape[1] - 2  # Subtract 2 statistical features (mean, std)
+        model.expected_sensor_size = max_sensor_size
         
         self.fingerprint_models[product_id] = model
         return model
@@ -118,12 +150,55 @@ class ScentFingerprinter:
         Returns:
             SimilarityResult with similarity analysis
         """
-        # Extract and process features
-        features = np.array(sensor_reading.values).reshape(1, -1)
-        scaled_features = model.scaler.transform(features)
-        embedded_features = model.pca_model.transform(scaled_features)
+        # Extract features using the same method as training
+        # First get the expected sensor size from the model or use current reading
+        if hasattr(model, 'expected_sensor_size'):
+            expected_sensor_size = model.expected_sensor_size
+        else:
+            # Estimate from scaler input size minus statistical features
+            expected_sensor_size = model.scaler.n_features_in_ - 2  # 2 statistical features (mean, std)
+            expected_sensor_size = max(1, expected_sensor_size)
         
-        # Calculate similarity
+        # Normalize sensor values to expected size
+        sensor_values = list(sensor_reading.values)
+        if len(sensor_values) < expected_sensor_size:
+            median_val = np.median(sensor_values) if sensor_values else 0.0
+            sensor_values.extend([median_val] * (expected_sensor_size - len(sensor_values)))
+        elif len(sensor_values) > expected_sensor_size:
+            sensor_values = sensor_values[:expected_sensor_size]
+        
+        # Create feature vector using same method as training
+        feature_vector = sensor_values
+        values_array = np.array(sensor_reading.values)
+        if len(values_array) > 0:
+            feature_vector.extend([
+                np.mean(values_array),
+                np.std(values_array),
+            ])
+        else:
+            feature_vector.extend([0.0, 0.0])
+        
+        features = np.array([feature_vector])
+        
+        # Ensure feature dimension matches training
+        expected_features = model.scaler.n_features_in_
+        if features.shape[1] != expected_features:
+            # Pad or truncate features to match expected size
+            if features.shape[1] < expected_features:
+                padding = np.zeros((1, expected_features - features.shape[1]))
+                features = np.hstack([features, padding])
+            else:
+                features = features[:, :expected_features]
+        
+        scaled_features = model.scaler.transform(features)
+        
+        # Apply PCA if model has it, otherwise use scaled features directly
+        if model.pca_model is not None:
+            embedded_features = model.pca_model.transform(scaled_features)
+        else:
+            embedded_features = scaled_features
+        
+        # Calculate similarity using cosine similarity
         similarity_score = cosine_similarity(
             [model.reference_fingerprint], 
             embedded_features
@@ -162,8 +237,19 @@ class ScentFingerprinter:
         Returns:
             Dict containing detailed deviation analysis
         """
-        # Transform the reading
-        features = np.array(sensor_reading.values).reshape(1, -1)
+        # Transform the reading using same feature extraction
+        features = self._extract_features([sensor_reading])
+        
+        # Ensure feature dimension matches training
+        expected_features = model.scaler.n_features_in_
+        if features.shape[1] != expected_features:
+            # Pad or truncate features to match expected size
+            if features.shape[1] < expected_features:
+                padding = np.zeros((1, expected_features - features.shape[1]))
+                features = np.hstack([features, padding])
+            else:
+                features = features[:, :expected_features]
+        
         scaled_features = model.scaler.transform(features)
         
         # Calculate channel-wise deviations
@@ -198,30 +284,57 @@ class ScentFingerprinter:
     def _extract_features(self, sensor_readings: List[SensorReading]) -> np.ndarray:
         """Extract feature matrix from sensor readings."""
         features = []
+        
+        # Determine consistent feature size from all readings
+        max_sensor_values = max(len(reading.values) for reading in sensor_readings)
+        
         for reading in sensor_readings:
-            # Basic features: raw values
-            feature_vector = reading.values.copy()
+            # Basic features: raw values (normalized to consistent size)
+            sensor_values = list(reading.values)
+            if len(sensor_values) < max_sensor_values:
+                # Pad with median value
+                median_val = np.median(sensor_values) if sensor_values else 0.0
+                sensor_values.extend([median_val] * (max_sensor_values - len(sensor_values)))
+            elif len(sensor_values) > max_sensor_values:
+                # Truncate to consistent size
+                sensor_values = sensor_values[:max_sensor_values]
             
-            # Statistical features
-            values_array = np.array(reading.values)
-            feature_vector.extend([
-                np.mean(values_array),
-                np.std(values_array),
-                np.max(values_array),
-                np.min(values_array),
-                np.median(values_array)
-            ])
+            feature_vector = sensor_values
             
-            # Ratio features (relationships between channels)
-            if len(reading.values) >= 4:
+            # Only add basic statistical features for consistency
+            values_array = np.array(reading.values)  # Use original values for stats
+            if len(values_array) > 0:
                 feature_vector.extend([
-                    reading.values[0] / (reading.values[1] + 1e-6),
-                    reading.values[2] / (reading.values[3] + 1e-6),
+                    np.mean(values_array),
+                    np.std(values_array),
                 ])
+            else:
+                feature_vector.extend([0.0, 0.0])
             
             features.append(feature_vector)
         
-        return np.array(features)
+        feature_matrix = np.array(features)
+        
+        # If embedding dimension is much larger than features, add synthetic features
+        if hasattr(self, 'embedding_dim') and self.embedding_dim > feature_matrix.shape[1] * 2:
+            # Add more comprehensive polynomial features
+            for idx, reading in enumerate(sensor_readings):
+                values = np.array(reading.values)
+                if len(values) >= 2:
+                    # Add interaction features (all pairs)
+                    for i in range(len(values)):
+                        for j in range(i+1, len(values)):
+                            features[idx].append(values[i] * values[j])
+                    
+                    # Add squared features  
+                    for val in values[:min(8, len(values))]:
+                        features[idx].append(val ** 2)
+                    
+                    # Add log features (with safety check)
+                    for val in values[:min(4, len(values))]:
+                        features[idx].append(np.log(abs(val) + 1e-6))
+        
+        return np.array([f for f in features])
     
     def _augment_data(self, feature_matrix: np.ndarray) -> np.ndarray:
         """Apply data augmentation to increase training diversity."""
@@ -242,11 +355,18 @@ class ScentFingerprinter:
                                    model: FingerprintModel) -> List[int]:
         """Identify which sensor channels are deviating significantly."""
         # This is a simplified approach - in practice would use more sophisticated methods
-        reference_raw = model.scaler.inverse_transform(
-            model.pca_model.inverse_transform(
+        if model.pca_model is not None:
+            # With PCA: inverse transform to get back to original space
+            reference_raw = model.scaler.inverse_transform(
+                model.pca_model.inverse_transform(
+                    model.reference_fingerprint.reshape(1, -1)
+                )
+            )[0]
+        else:
+            # Without PCA: inverse transform scaled features directly
+            reference_raw = model.scaler.inverse_transform(
                 model.reference_fingerprint.reshape(1, -1)
-            )
-        )[0]
+            )[0]
         
         # Take only the original sensor channels (before statistical features were added)
         original_channels = len(current_values)

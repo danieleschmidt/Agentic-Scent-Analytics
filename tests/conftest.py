@@ -3,6 +3,7 @@ Test configuration and fixtures.
 """
 
 import pytest
+import pytest_asyncio
 import asyncio
 import tempfile
 import shutil
@@ -78,7 +79,7 @@ def contaminated_sensor_reading():
     )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def quality_control_agent():
     """Quality control agent for testing."""
     agent = QualityControlAgent(agent_id="test_qc_agent")
@@ -87,7 +88,7 @@ async def quality_control_agent():
     await agent.stop()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture  
 async def analytics_factory():
     """Analytics factory for testing."""
     factory = ScentAnalyticsFactory(
