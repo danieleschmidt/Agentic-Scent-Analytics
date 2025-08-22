@@ -1,0 +1,165 @@
+{
+  "functional_tests": {
+    "core_imports": {
+      "passed": true,
+      "timestamp": "2025-08-22T01:59:48.985251"
+    },
+    "factory_creation": {
+      "passed": true,
+      "timestamp": "2025-08-22T01:59:49.017226"
+    },
+    "sensor_reading": {
+      "passed": false,
+      "timestamp": "2025-08-22T01:59:49.017286"
+    },
+    "agent_creation": {
+      "passed": true,
+      "timestamp": "2025-08-22T01:59:49.017598"
+    },
+    "analytics_basic": {
+      "passed": false,
+      "timestamp": "2025-08-22T01:59:49.017792"
+    },
+    "llm_integration": {
+      "passed": true,
+      "timestamp": "2025-08-22T01:59:49.118597"
+    }
+  },
+  "performance_tests": {
+    "memory_usage": {
+      "passed": true,
+      "metrics": {
+        "initial_mb": 161.11,
+        "peak_mb": 162.25,
+        "final_mb": 162.25,
+        "increase_mb": 1.14,
+        "leaked_mb": 1.14
+      },
+      "duration": 0.1654348373413086,
+      "timestamp": "2025-08-22T01:59:49.284091"
+    },
+    "processing_speed": {
+      "passed": false,
+      "metrics": {},
+      "duration": 0.0002143383026123047,
+      "timestamp": "2025-08-22T01:59:49.284354"
+    },
+    "concurrent_load": {
+      "passed": false,
+      "metrics": {
+        "total_time_s": 0.001,
+        "successful_analyses": 0,
+        "success_rate": 0.0,
+        "throughput_per_sec": 22702.59
+      },
+      "duration": 0.0011572837829589844,
+      "timestamp": "2025-08-22T01:59:49.285530"
+    },
+    "cache_performance": {
+      "passed": true,
+      "metrics": {
+        "cache_ops_per_sec": 2482571.0,
+        "hit_rate": 1.0,
+        "total_time_ms": 0.81
+      },
+      "duration": 0.0008404254913330078,
+      "timestamp": "2025-08-22T01:59:49.286391"
+    },
+    "scalability": {
+      "passed": false,
+      "metrics": {},
+      "duration": 0.4224996566772461,
+      "timestamp": "2025-08-22T01:59:49.708914"
+    }
+  },
+  "security_tests": {
+    "input_validation": {
+      "passed": true,
+      "details": {
+        "test_cases": 3,
+        "validations_triggered": 3
+      },
+      "timestamp": "2025-08-22T01:59:49.709057"
+    },
+    "injection_protection": {
+      "passed": false,
+      "details": {
+        "test_cases": 4,
+        "safe_handling": 3,
+        "safety_rate": 0.75
+      },
+      "timestamp": "2025-08-22T01:59:49.709094"
+    },
+    "data_sanitization": {
+      "passed": false,
+      "details": {
+        "script_removed": false,
+        "sql_removed": false,
+        "sanitization_effective": false
+      },
+      "timestamp": "2025-08-22T01:59:49.709125"
+    },
+    "access_control": {
+      "passed": true,
+      "details": {
+        "access_levels_tested": 3,
+        "controlled_operations": 2
+      },
+      "timestamp": "2025-08-22T01:59:49.709135"
+    }
+  },
+  "integration_tests": {
+    "end_to_end_analysis": {
+      "passed": false,
+      "components_tested": [],
+      "timestamp": "2025-08-22T01:59:49.716590"
+    },
+    "sensor_agent_integration": {
+      "passed": false,
+      "components_tested": [],
+      "timestamp": "2025-08-22T01:59:49.716777"
+    },
+    "analytics_pipeline": {
+      "passed": false,
+      "components_tested": [],
+      "timestamp": "2025-08-22T01:59:49.716992"
+    },
+    "multi_component": {
+      "passed": true,
+      "components_tested": [
+        "Factory",
+        "LLM",
+        "State Management"
+      ],
+      "timestamp": "2025-08-22T01:59:49.824346"
+    }
+  },
+  "quality_gates": {
+    "functional_gate": {
+      "passed": false,
+      "score": 0.6666666666666666,
+      "threshold": 0.9,
+      "weight": 0.4
+    },
+    "performance_gate": {
+      "passed": false,
+      "score": 0.4,
+      "threshold": 0.8,
+      "weight": 0.3
+    },
+    "security_gate": {
+      "passed": false,
+      "score": 0.5,
+      "threshold": 0.8,
+      "weight": 0.2
+    },
+    "integration_gate": {
+      "passed": false,
+      "score": 0.25,
+      "threshold": 0.8,
+      "weight": 0.1
+    }
+  },
+  "overall_score": 0.5116666666666667,
+  "production_ready": false
+}

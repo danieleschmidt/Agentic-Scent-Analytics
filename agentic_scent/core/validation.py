@@ -12,6 +12,14 @@ from enum import Enum
 from .exceptions import ValidationError, create_error_with_code
 
 
+class ValidationSeverity(Enum):
+    """Validation severity levels."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
 class ValidationLevel(Enum):
     """Validation strictness levels."""
     BASIC = "basic"
@@ -444,6 +452,34 @@ class AdvancedDataValidator:
             validation_warnings=batch_warnings,
             temporal_consistency=validity_ratio
         )
+
+
+# Missing classes for backward compatibility
+class SensorReadingValidator(AdvancedDataValidator):
+    """Specialized validator for sensor readings."""
+    
+    def __init__(self, sensor_type: str = "e_nose"):
+        super().__init__(ValidationLevel.STRICT)
+        self.sensor_type = sensor_type
+    
+    def validate_reading(self, reading_data: Dict[str, Any]) -> ValidationResult:
+        """Validate a single sensor reading."""
+        return self.validate_comprehensive(reading_data, self.sensor_type)
+
+
+class InputSanitizer:
+    """Input sanitization utility."""
+    
+    def __init__(self):
+        self.validator = AdvancedDataValidator()
+    
+    def sanitize(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Sanitize input data."""
+        return self.validator._sanitize_input(data)
+    
+    def is_safe(self, data: Dict[str, Any]) -> bool:
+        """Check if input is safe."""
+        return self.validator._validate_security(data)
 
 
 # Backward compatibility
