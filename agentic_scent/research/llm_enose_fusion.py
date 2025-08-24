@@ -29,7 +29,11 @@ import json
 import hashlib
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.decomposition import PCA
-from sklearn.manifold import UMAP
+# UMAP not available in standard sklearn, using PCA as fallback
+try:
+    from umap import UMAP
+except ImportError:
+    from sklearn.decomposition import PCA as UMAP
 from scipy.spatial.distance import cosine
 from scipy.stats import entropy
 import warnings
@@ -37,9 +41,13 @@ warnings.filterwarnings('ignore')
 
 # Mock LLM client for development (replace with actual LLM in production)
 try:
-    from ..llm.client import LLMClient
+    from ..llm.client import LLMClient, LLMConfig, LLMProvider
+    LLM_CLIENT_AVAILABLE = True
 except ImportError:
+    LLM_CLIENT_AVAILABLE = False
     class LLMClient:
+        def __init__(self, config=None):
+            pass
         async def generate(self, prompt, max_tokens=500):
             return f"Mock LLM response for prompt: {prompt[:50]}..."
 
@@ -113,7 +121,11 @@ class SemanticScentTransformer:
         self.quality_projector = PCA(n_components=embedding_dim//8)
         
         # LLM client for semantic interpretation
-        self.llm_client = LLMClient()
+        if LLM_CLIENT_AVAILABLE:
+            config = LLMConfig(provider=LLMProvider.MOCK, model="mock-model")
+            self.llm_client = LLMClient(config)
+        else:
+            self.llm_client = LLMClient()
         
         # Pattern memory for temporal analysis
         self.pattern_memory = []
