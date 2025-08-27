@@ -1,5 +1,5 @@
 {
-  "timestamp": "2025-08-25T22:01:24.558943",
+  "timestamp": "2025-08-27T02:26:59.032913",
   "overall_score": 100.0,
   "overall_status": "PASS",
   "gate_results": {
@@ -19,10 +19,10 @@
       "performance_score": 100,
       "metrics": {
         "cache_hit_rate": 1.0,
-        "factory_creation_time": 0.07414507865905762,
-        "throughput_ops_per_sec": 1348.7071806860095,
+        "factory_creation_time": 0.028482675552368164,
+        "throughput_ops_per_sec": 3510.906123132298,
         "memory_efficiency": 95.0,
-        "latency_ms": 0.7414507865905762
+        "latency_ms": 0.28482675552368164
       },
       "compliance": "PASS"
     },
