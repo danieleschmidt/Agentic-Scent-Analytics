@@ -1,23 +1,28 @@
 """
-Agentic Scent Analytics - LLM-powered analytics platform for smart factory e-nose deployments.
+Agentic Scent Analytics
+=======================
+Agentic framework for chemical sensor (e-nose) data analysis,
+odorant classification, and anomaly detection in industrial environments.
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 __author__ = "Daniel Schmidt"
-__email__ = "daniel@terragonlabs.com"
 
-from .core.factory import ScentAnalyticsFactory
-from .agents.quality_control import QualityControlAgent
-from .agents.orchestrator import AgentOrchestrator
-from .sensors.base import SensorInterface
-from .analytics.fingerprinting import ScentFingerprinter
-from .predictive.quality import QualityPredictor
+from .sensor import OdorSensor, SensorReading, ODORANT_PROFILES
+from .fusion import SensorFusionAgent
+from .classifier import OdorantClassifier
+from .anomaly import AnomalyDetectionAgent, AnomalyResult
+from .simulator import ScenarioSimulator, ScenarioReport, SampleResult
 
 __all__ = [
-    "ScentAnalyticsFactory",
-    "QualityControlAgent", 
-    "AgentOrchestrator",
-    "SensorInterface",
-    "ScentFingerprinter",
-    "QualityPredictor",
+    "OdorSensor",
+    "SensorReading",
+    "ODORANT_PROFILES",
+    "SensorFusionAgent",
+    "OdorantClassifier",
+    "AnomalyDetectionAgent",
+    "AnomalyResult",
+    "ScenarioSimulator",
+    "ScenarioReport",
+    "SampleResult",
 ]
